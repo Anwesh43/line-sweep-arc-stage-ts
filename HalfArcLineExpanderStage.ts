@@ -7,6 +7,7 @@ const scDiv : number = 0.51
 const sizeFactor : number = 3
 const strokeFactor : number = 90
 const foreColor : string = "#673AB7"
+const backColor : string = "#212121"
 
 
 const maxScale : Function = (scale : number, i : number, n : number) : number => {
@@ -67,4 +68,35 @@ const drawHALENode : Function = (context : CanvasRenderingContext2D, i : number,
         drawLineArc(context, -180 * j * sc1 - 90 * sc * sf)
     }
     context.restore()
+}
+
+class HalfArcLineExpanderStage {
+
+    canvas : HTMLCanvasElement = document.createElement('canvas')
+    context : CanvasRenderingContext2D
+
+    initCanvas() {
+        this.canvas.width = w
+        this.canvas.height = h
+        this.context = this.canvas.getContext('2d')
+        document.body.appendChild(this.canvas)
+    }
+
+    render() {
+        this.context.fillStyle = backColor
+        this.context.fillRect(0, 0, w, h)
+    }
+
+    handleTap() {
+        this.canvas.onmousedown = () => {
+
+        }
+    }
+
+    static init() {
+        const stage : HalfArcLineExpanderStage = new HalfArcLineExpanderStage()
+        stage.initCanvas()
+        stage.render()
+        stage.handleTap()
+    }
 }
