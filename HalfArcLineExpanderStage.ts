@@ -6,6 +6,8 @@ const scGap : number = 0.05
 const scDiv : number = 0.51
 const sizeFactor : number = 3
 const strokeFactor : number = 90
+const foreColor : string = "#673AB7"
+
 
 const maxScale : Function = (scale : number, i : number, n : number) : number => {
     return Math.max(0, scale - i / n)
@@ -24,4 +26,45 @@ const mirrorValue : Function = (scale : number, a : number, b : number) : number
 
 const updateValue : Function = (scale : number, dir : number, a : number, b : number) : number => {
     return mirrorValue(scale, a, b) * dir * scGap
+}
+
+const drawLineArc : Function = (context : CanvasRenderingContext2D, r : number, rot : number) => {
+    context.save()
+    context.rotate(rot)
+    context.beginPath()
+    context.moveTo(0, 0)
+    context.lineTo(0, r)
+    context.stroke()
+    context.save()
+    for (var i = 0; i <= rot; i++) {
+        const x = r * Math.cos(i * Math.PI/180)
+        const y = r * Math.sin(i * Math.PI/180)
+        if (i == 0) {
+            context.beginPath()
+            context.moveTo(x, y)
+        } else {
+            context.lineTo(x, y)
+        }
+    }
+    context.stroke()
+    context.restore()
+    context.restore()
+}
+
+const drawHALENode : Function = (context : CanvasRenderingContext2D, i : number, scale : number) => {
+    const gap : number = w / (nodes + 1)
+    const size : number = gap / sizeFactor
+    context.strokeStyle = foreColor
+    context.lineCap = 'round'
+    context.lineWidth = Math.min(w, h) / strokeFactor
+    const sc1 : number = divideScale(scale, 0, 2)
+    const sc2 : number = divideScale(scale, 1, 2)
+    context.save()
+    context.translate(gap * i, h / 2)
+    for (var j = 0; j < lines; j++) {
+        const sf : number = 1 - 2 * j
+        const sc : number = divideScale(scale, j, lines)
+        drawLineArc(context, -180 * j * sc1 - 90 * sc * sf)
+    }
+    context.restore()
 }
