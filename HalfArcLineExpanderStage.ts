@@ -212,3 +212,25 @@ class HalfArcLineExpander {
         this.curr.startUpdating(cb)
     }
 }
+
+class Renderer {
+
+    hale : HalfArcLineExpander = new HalfArcLineExpander()
+    animator : Animator = new Animator()
+
+    render(context : CanvasRenderingContext2D) {
+        this.hale.draw(context)
+    }
+
+    handleTap(cb : Function) {
+        this.hale.startUpdating(() => {
+            this.animator.start(() => {
+                cb()
+                this.hale.update(() => {
+                    this.animator.stop()
+                    cb()
+                })
+            })
+        })
+    }
+}
