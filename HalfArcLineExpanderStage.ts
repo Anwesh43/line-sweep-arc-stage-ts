@@ -15,7 +15,7 @@ const maxScale : Function = (scale : number, i : number, n : number) : number =>
 }
 
 const divideScale : Function = (scale : number, i : number, n : number) : number => {
-    return Math.min(1/n, maxScale(scale, i, n))
+    return Math.min(1/n, maxScale(scale, i, n)) * n
 }
 
 const scaleFactor : Function = (scale : number) : number => Math.floor(scale / scDiv)
@@ -31,25 +31,28 @@ const updateValue : Function = (scale : number, dir : number, a : number, b : nu
 
 const drawLineArc : Function = (context : CanvasRenderingContext2D, r : number, rot : number) => {
     context.save()
-    context.rotate(rot)
+    context.rotate(rot * Math.PI / 180)
     context.beginPath()
     context.moveTo(0, 0)
-    context.lineTo(0, r)
-    context.stroke()
-    context.save()
-    for (var i = 0; i <= rot; i++) {
-        const x = r * Math.cos(i * Math.PI/180)
-        const y = r * Math.sin(i * Math.PI/180)
-        if (i == 0) {
-            context.beginPath()
-            context.moveTo(x, y)
-        } else {
-            context.lineTo(x, y)
-        }
-    }
+    context.lineTo(r, 0)
     context.stroke()
     context.restore()
-    context.restore()
+}
+
+const drawSweepArc : Function = (context : CanvasRenderingContext2D, r : number, start : number, end : number) => {
+  context.save()
+  context.beginPath()
+  for (var i = Math.abs(start); i <= Math.abs(end); i++) {
+      const x = r * Math.cos(i * Math.PI/180)
+      const y = -r * Math.sin(i * Math.PI/180)
+      if (i == 0) {
+          context.moveTo(x, y)
+      } else {
+          context.lineTo(x, y)
+      }
+  }
+  context.stroke()
+  context.restore()
 }
 
 const drawHALENode : Function = (context : CanvasRenderingContext2D, i : number, scale : number) => {
@@ -60,12 +63,21 @@ const drawHALENode : Function = (context : CanvasRenderingContext2D, i : number,
     context.lineWidth = Math.min(w, h) / strokeFactor
     const sc1 : number = divideScale(scale, 0, 2)
     const sc2 : number = divideScale(scale, 1, 2)
+    if  (scale > 0 && scale < 1) {
+        console.log(`${sc1}, ${sc2}`)
+    }
+    const degs = []
     context.save()
-    context.translate(gap * i, h / 2)
+    context.translate(gap * (i + 1), h / 2)
     for (var j = 0; j < lines; j++) {
         const sf : number = 1 - 2 * j
-        const sc : number = divideScale(scale, j, lines)
-        drawLineArc(context, -180 * j * sc1 - 90 * sc * sf)
+        const sc : number = divideScale(sc2, j, lines)
+        const deg = -180 * j * sc1 - 90 * sc * sf
+        drawLineArc(context, size, deg)
+        degs.push(deg)
+    }
+    if (degs.length == 2) {
+        drawSweepArc(context, size, degs[0], degs[1])
     }
     context.restore()
 }
@@ -113,6 +125,7 @@ class State {
 
     update(cb : Function) {
         this.scale += updateValue(this.scale, this.dir, 1, lines)
+        console.log(this.scale)
         if (Math.abs(this.scale - this.prevScale) > 1) {
             this.scale = this.prevScale + this.dir
             this.dir = 0
